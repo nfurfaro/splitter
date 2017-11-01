@@ -3,6 +3,7 @@ var Splitter = artifacts.require("./Splitter.sol");
 
 module.exports = function(deployer) {
   deployer.deploy(ConvertLib);
-  deployer.link(ConvertLib, MetaCoin);
-  deployer.deploy(MetaCoin);
+  deployer.link(ConvertLib, Splitter);
+  // default value for killSwitch = false
+  deployer.deploy(Splitter(false));
 };
