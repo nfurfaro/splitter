@@ -1,54 +1,57 @@
-//                    CAUTION!
-// ==========  NOT FOR PRODUCTION USE!  ===========
-// This is meant for course-project practice use only.
-// Author = @nick44o
-
 pragma solidity ^0.4.6;
 
-contract owned {
-    function owned() { owner = msg.sender; }
+contract Splitter {
     address owner;
-}
-
-contract mortal is owned {
-    function kill() {
-        selfdestruct(owner);
-    }
-}
-
-contract Splitter is mortal{
-    address public owner;
-    uint public balanceAlice;
-    uint public contractBalance;
-    uint public totalContributions;
-    address Bob;
-    address Carol;
-    uint public balanceBob;
-    uint public balanceCarol;
+    address Account;
+    uint OnePortion;
+    uint public ContractBalance;
+    address Alice = 0xca35b7d915458ef540ade6068dfe2f44e8fa733c;
+    address  Bob = 0x14723a09acff6d2a60dcdf7aa4aff308fddc160c;
+    address  Carol = 0x4b0897b0513fdc7c541b6d9d7e929c4e5364d2db;
     
-    function Splitter()
-        public 
-    {
+    event LogDeposit(address sender, uint amount);
+    event LogWithdrawl(address taker, uint amount);
+
+    function Splitter() public {
         owner = msg.sender;
-        balanceAlice = owner.balance;
-        Bob = 0x14723a09acff6d2a60dcdf7aa4aff308fddc160c;
-        Carol = 0x4b0897b0513fdc7c541b6d9d7e929c4e5364d2db;
-        balanceBob = Bob.balance;
-        balanceCarol = Carol.balance;
     }
     
-    function spreadTheWealth()
+    function GetBalanceA() public view returns(uint) {
+        return Alice.balance;
+    }
+    
+    function GetBalanceB() public view returns(uint) {
+        return Bob.balance;    
+    }
+    
+    function GetBalanceC() public view returns(uint) {
+        return Carol.balance;    
+    }
+    
+    function deposit()
         public      
         payable
         returns(bool successfulSplit)
     {   
         require(msg.sender == owner);
         require(msg.value != 0);
-        contractBalance = this.balance;
-        totalContributions += contractBalance;
-        uint onePortion = contractBalance / 2;
-        Bob.transfer    (onePortion);
-        Carol.transfer(onePortion);
+        ContractBalance = msg.value;
+        uint Remainder = msg.value % 2;
+        OnePortion = (ContractBalance - Remainder) / 2;
+        LogDeposit(msg.sender, msg.value);
         return true;
     }
+
+    function WithdrawFunds(address _Account) 
+        public
+        returns(bool SuccessfulWithdrawl)
+    {
+        require(OnePortion != 0);
+        Account = _Account;
+        require(Account == Bob || Account == Carol);
+        ContractBalance -= OnePortion;
+        Account.transfer(OnePortion);
+        LogWithdrawl(msg.sender, OnePortion);
+        return true;
+    } 
 }
