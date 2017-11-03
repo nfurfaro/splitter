@@ -15,8 +15,10 @@ contract Splitter {
     // Temporarily working through this project with hard-coded values for now.
     function Splitter() public {
         owner = msg.sender;
-        Bob = 0x14723a09acff6d2a60dcdf7aa4aff308fddc160c;
-        Carol = 0x4b0897b0513fdc7c541b6d9d7e929c4e5364d2db;
+        Bob = 0x97314660e157102ddd219f16c80005c4c03ce659;
+        Carol = 0x156ee3356777139a2bbe695a4b1ccd5b692ca60c;
+        // Bob = 0x14723a09acff6d2a60dcdf7aa4aff308fddc160c;
+        // Carol = 0x4b0897b0513fdc7c541b6d9d7e929c4e5364d2db;
         bobsFunds = 0;
         carolsFunds = 0;
     }
