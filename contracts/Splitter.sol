@@ -38,7 +38,7 @@ contract Splitter {
         return true;
     }
     // todo keep track of each persons available funds independently 
-    function WithdrawFunds() 
+    function withdrawFunds() 
         public
         returns(bool SuccessfulWithdrawl)
     { 

@@ -43,20 +43,71 @@ contract('Splitter', accounts => {
 
   	})
   });
-
+// todo if i make total value of all deposits = 42 I get errors, but not with 40...
   it("should keep track of the total value of all deposits", () => {
   	return Splitter.deployed().then(instance => {
   	   contract = instance;
-  	   return contract.deposit({from: owner, value: 7})
+  	   return contract.deposit({from: owner, value: 2})
   	}).then (() => {
-  		return contract.deposit({from: owner, value: 19})
+  		return contract.deposit({from: owner, value: 14})
   	}).then(() => {
-  		return contract.deposit({from: owner, value: 16})
+  		return contract.deposit({from: owner, value: 14})
   	}).then (() => {
   		return contract.getContractBalance()
-  	}).then((_balance) => {
-  		assert.equal(_balance.toString(10), "52", "Splitter balance was not properly accumulated")
+  	}).then(_balance => {
+  		assert.equal(_balance.toString(10), "40", "Splitter balance was not properly credited")
   	})
   })
+
+  it("should allow Bob and Carol to each withdraw half of the funds", () => {
+  	return Splitter.deployed().then(instance => {
+  	   contract = instance;
+  	   return contract.getContractBalance()
+  	}).then(_balance => {
+  		assert.equal(_balance.toString(10), "40", "The balance is incorrect here.")
+  	}).then(() => {
+  		return contract.withdrawFunds({from: Bob})
+  	}).then(() => {
+  		return contract.getContractBalance()
+  	}).then(_balance => {
+  		assert.equal(_balance.toString(10), "20", "Splitter balance was not properly debited")
+  	}).then(() => {
+  		return contract.withdrawFunds({from: Carol})
+  	}).then(() => {
+  		return contract.getContractBalance()
+  	}).then(_balance => {
+  		assert.equal(_balance.toString(10), "0", "Splitter balance was not properly debited")
+  	})
+  })
+
+  it("should not allow Bob to withdraw more than his share", () => {
+  	return Splitter.deployed().then(instance => {
+  		contract = instance;
+  		return contract.getContractBalance()
+  	}).then(_balance => {
+  		assert.equal(_balance.toString(10), "0", "The starting balance is incorrect here.")
+  	}).then (() => {
+  		return contract.deposit({from: owner, value: 50})
+  	}).then(() => {
+  		return contract.withdrawFunds({from: Bob})
+  		//should be 25
+  	}).then (() => {
+  		return contract.deposit({from: owner, value: 10})
+  	}).then(() => {
+  		return contract.withdrawFunds({from: Bob})
+  		//should be 5, not 17
+  	}).then(() => {
+  		return contract.getContractBalance()
+  	}).then(_balance => {
+  		assert.equal(_balance.toString(10), "30", "Splitter balance was not properly debited")
+  	}).then(() => {
+  		return contract.withdrawFunds({from: Carol})
+  	}).then(() => {
+  		return contract.getContractBalance()
+  	}).then(_balance => {
+  		assert.equal(_balance.toString(10), "0", "Splitter balance was not properly debited")
+  	})
+  })
+
 
 });
