@@ -13,14 +13,13 @@ contract('Splitter', accounts => {
     //});
   //});
 
-  it("should be owned by owner", function() {
-  	return Splitter.deployed().then(function(instance) {
+  it("should be owned by owner", () => {
+  	return Splitter.deployed().then(instance => {
   	  contract = instance;
   	  return contract.owner({from: owner})
-  	  .then(function(_owner) {
+    }).then(_owner => {
   		assert.strictEqual(_owner, owner, "Contract is not owned by owner");
-  	  });
-    });
+  	})
   });
 
   it("should start with a balance of 0", () => {
