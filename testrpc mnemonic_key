@@ -1,0 +1,6 @@
+// testrpc_mnemonic_key
+
+"cousin method yard alert attitude furnace wine erupt caught water actual truck"
+
+So, run:
+`$ 	testrpc --accounts 3 --mnemonic "cousin method yard alert attitude furnace wine erupt caught water actual truck"`
