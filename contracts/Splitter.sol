@@ -2,25 +2,40 @@ pragma solidity ^0.4.6;
 
 contract Splitter {
     address public owner;
-    uint private onePortion;
-    address private Bob;
-    address private Carol;
-    uint private bobsFunds;
-    uint private carolsFunds;
+    address public Bob;
+    address public Carol;
+    uint public n;
+
+    address[] public addresses;
     
+    struct ChosenOneStruct {
+        address addr;
+        uint availableFunds;
+    }
+
+    ChosenOneStruct[] public theChosenOnes;
 
     event LogDeposit(address depositor, uint amount);
+    event LogDepositInternals(uint funds, uint onePortion);
     event LogWithdrawl(address withdrawer, uint amount);
+    event LogContractState(uint timestamp, address splitter, uint balance, uint bobsFunds, uint carolsFunds );
 
-    // Temporarily working through this project with hard-coded values for now.
     function Splitter() public {
         owner = msg.sender;
-        Bob = 0x97314660e157102ddd219f16c80005c4c03ce659;
-        Carol = 0x156ee3356777139a2bbe695a4b1ccd5b692ca60c;
+        addresses.push(0x97314660e157102ddd219f16c80005c4c03ce659);
+        addresses.push(0x156ee3356777139a2bbe695a4b1ccd5b692ca60c);
+        n = addresses.length;
+        for(uint i; i < n; i++) {
+            ChosenOneStruct memory chosenOne;
+            chosenOne.addr = addresses[i];
+            theChosenOnes.push(chosenOne);
+        }
+        // testrpc
+        // Bob = 0x97314660e157102ddd219f16c80005c4c03ce659;
+        // Carol = 0x156ee3356777139a2bbe695a4b1ccd5b692ca60c;
+        //// remix
         // Bob = 0x14723a09acff6d2a60dcdf7aa4aff308fddc160c;
         // Carol = 0x4b0897b0513fdc7c541b6d9d7e929c4e5364d2db;
-        bobsFunds = 0;
-        carolsFunds = 0;
     }
     
     function deposit()
@@ -30,36 +45,37 @@ contract Splitter {
     {   
         require(msg.sender == owner);
         require(msg.value != 0);
-        uint remainder = msg.value % 2;
-        onePortion = (msg.value - remainder) / 2;
-        bobsFunds += onePortion;
-        carolsFunds += onePortion;
         LogDeposit(msg.sender, msg.value);
+        LogContractState(block.timestamp, this, this.balance, theChosenOnes[0].availableFunds, theChosenOnes[1].availableFunds );
+        uint remainder = msg.value % n;
+        uint onePortion = (msg.value - remainder) / n;
+        for(uint i; i < n; i++) {
+            // uint funds = theChosenOnes[i].availableFunds
+            theChosenOnes[i].availableFunds += onePortion;
+            LogDepositInternals(theChosenOnes[i].availableFunds, onePortion);
+        }
+        LogContractState(block.timestamp, this, this.balance, theChosenOnes[0].availableFunds, theChosenOnes[1].availableFunds );
         return true;
     }
-    // todo keep track of each persons available funds independently 
+
     function withdrawFunds() 
         public
-        returns(bool SuccessfulWithdrawl)
-    { 
-        require(msg.sender == Bob || msg.sender == Carol);
-        uint transferAmount;
-        if(msg.sender == Bob) {
-            require(bobsFunds != 0);
-            transferAmount = bobsFunds;
-            bobsFunds = 0;
-            msg.sender.transfer(transferAmount);
-            LogWithdrawl(msg.sender, transferAmount);
-        }
-        if(msg.sender == Carol) {
-            require(carolsFunds != 0);
-            transferAmount = carolsFunds;
-            carolsFunds = 0;
-            msg.sender.transfer(transferAmount);
-            LogWithdrawl(msg.sender, transferAmount);
-        }
+        returns(bool SuccessfulWithdrawl) { 
+            for(uint i; i < n; i++) {
+                address addr = theChosenOnes[i].addr;
+                uint funds = theChosenOnes[i].availableFunds;
+                if(addr == msg.sender) {
+                    require(funds != 0);
+                    LogContractState(block.timestamp, this, this.balance, theChosenOnes[0].availableFunds, theChosenOnes[1].availableFunds );
+                    msg.sender.transfer(funds);
+                    funds = 0;
+                    LogWithdrawl(msg.sender, funds);
+                    LogContractState(block.timestamp, this, this.balance, theChosenOnes[0].availableFunds, theChosenOnes[1].availableFunds );
+                } else continue;
+            }
         return true;
-    } 
+    }
+
     
     function getContractBalance() public constant returns(uint) {
         return this.balance;
