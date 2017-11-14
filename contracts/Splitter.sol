@@ -15,10 +15,14 @@ contract Splitter {
 
     mapping(address => uint) public theChosenOnes;
     
+    // function Splitter(address _Bob, address _Carol) public {
+    //     owner = msg.sender;
+    //     Bob = _Bob;
+    //     Carol = _Carol;
+    // }
+
     function Splitter() public {
         owner = msg.sender;
-        // Bob = _Bob;
-        // Carol = _Carol;
         Bob = 0x97314660e157102ddd219f16c80005c4c03ce659;
         Carol = 0x156ee3356777139a2bbe695a4b1ccd5b692ca60c;
     }
