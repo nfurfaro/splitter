@@ -12,6 +12,7 @@ contract Splitter {
     event LogDeposit(address depositor, uint amount);
     event LogWithdrawl(address withdrawer, uint amount);
     event LogContractState(uint balance, uint bobsFunds, uint carolsFunds);
+    event LogFreeze(string title, bool isFrozen);
 
     mapping(address => uint) public theChosenOnes;
     
@@ -33,7 +34,7 @@ contract Splitter {
     }
 
     modifier freezeRay() {
-        require(frozen == false);
+        require(!frozen);
         _;
     }
     
@@ -45,21 +46,16 @@ contract Splitter {
     {  
         require(msg.value != 0);
         LogDeposit(msg.sender, msg.value);
+        LogContractState(this.balance, theChosenOnes[Bob], theChosenOnes[Carol]); 
+        theChosenOnes[Bob] += msg.value / 2;
+        theChosenOnes[Carol] += msg.value / 2 + msg.value % 2;
         LogContractState(this.balance, theChosenOnes[Bob], theChosenOnes[Carol]);
-        uint remainder = msg.value % 2;
-        // uint value = msg.value;
-        onePortion = msg.value / 2;
-        theChosenOnes[Bob] += onePortion;
-        theChosenOnes[Carol] += onePortion + remainder;
-        LogContractState(this.balance, theChosenOnes[Bob], theChosenOnes[Carol]);
-        onePortion = 0;
     }
 
     function withdrawFunds()
         freezeRay 
         public 
     {
-        require(frozen == false);
         require(theChosenOnes[msg.sender] != 0);
             LogContractState(this.balance, theChosenOnes[Bob], theChosenOnes[Carol]);
             transferAmount = theChosenOnes[msg.sender]; 
@@ -69,22 +65,19 @@ contract Splitter {
             LogContractState(this.balance, theChosenOnes[Bob], theChosenOnes[Carol]); 
     } 
     
-    function getContractBalance() freezeRay public constant returns(uint) {
+    function getContractBalance() public constant returns(uint) {
             return this.balance;
     }
 
-    function getBalanceA() freezeRay public constant returns(uint) {
-        require(frozen == false);
+    function getBalanceA() public constant returns(uint) {
         return owner.balance;
     }
     
-    function getBalanceB() freezeRay public constant returns(uint) {
-        require(frozen == false);
+    function getBalanceB() public constant returns(uint) {
         return Bob.balance;    
     }
     
-    function getBalanceC() freezeRay public constant returns(uint) {
-        require(frozen == false);
+    function getBalanceC() public constant returns(uint) {
         return Carol.balance;    
     }
 
@@ -92,6 +85,7 @@ contract Splitter {
         isOwner
         returns (bool success) {
             frozen = _freeze;
+            LogFreeze("Splitter contract frozen?", frozen);
             return true;
     }
 }

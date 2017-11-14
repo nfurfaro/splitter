@@ -57,7 +57,6 @@ contract('Splitter', accounts => {
   	  }).then(function(_balance) {
           return instance.withdrawFunds({from: Bob})
       }).then(function(txObj) {
-      	  // console.log(txObj.receipt.logs);
           assert.equal(txObj.logs[0].args.bobsFunds.toString(10), "25", "Bob's share wasn't properly allocated");
       });
    });
@@ -69,7 +68,7 @@ contract('Splitter', accounts => {
   	  }).then(function(_balance) {
           return instance.withdrawFunds({from: Carol})
       }).then(function(txObj) {
-      	  // console.log(txObj.receipt.logs);
+      	  // console.log(txObj.receipt);
           assert.equal(txObj.logs[0].args.carolsFunds.toString(10), "11", "Carols's share wasn't properly allocated");
       });
    });
@@ -105,6 +104,3 @@ contract('Splitter', accounts => {
     });
 
 });
-
-
-  
