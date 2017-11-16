@@ -6,26 +6,17 @@ contract Splitter {
     bool public frozen;
     address public Bob;
     address public Carol;
-    uint public onePortion;
-    uint public transferAmount;
 
     event LogDeposit(address depositor, uint amount);
-    event LogWithdrawl(address withdrawer, uint amount);
-    event LogContractState(uint balance, uint bobsFunds, uint carolsFunds);
-    event LogFreeze(string title, bool isFrozen);
+    event LogWithdrawal(address withdrawer, uint amount);
+    event LogFreeze(bool isFrozen);
 
     mapping(address => uint) public theChosenOnes;
     
-    // function Splitter(address _Bob, address _Carol) public {
-    //     owner = msg.sender;
-    //     Bob = _Bob;
-    //     Carol = _Carol;
-    // }
-
-    function Splitter() public {
+    function Splitter(address _Bob, address _Carol) public {
         owner = msg.sender;
-        Bob = 0x97314660e157102ddd219f16c80005c4c03ce659;
-        Carol = 0x156ee3356777139a2bbe695a4b1ccd5b692ca60c;
+        Bob = _Bob;
+        Carol = _Carol;
     }
     
     modifier isOwner() {
@@ -45,47 +36,37 @@ contract Splitter {
         payable                            
     {  
         require(msg.value != 0);
-        LogDeposit(msg.sender, msg.value);
-        LogContractState(this.balance, theChosenOnes[Bob], theChosenOnes[Carol]); 
         theChosenOnes[Bob] += msg.value / 2;
         theChosenOnes[Carol] += msg.value / 2 + msg.value % 2;
-        LogContractState(this.balance, theChosenOnes[Bob], theChosenOnes[Carol]);
+        LogDeposit(msg.sender, msg.value); 
     }
 
     function withdrawFunds()
         freezeRay 
-        public 
+        public
+        returns (bool success) 
     {
+        if(msg.sender == owner) {
+            frozen = true;
+            LogWithdrawal(msg.sender, this.balance);
+            msg.sender.transfer(this.balance);
+            return true;
+        } 
         require(theChosenOnes[msg.sender] != 0);
-            LogContractState(this.balance, theChosenOnes[Bob], theChosenOnes[Carol]);
-            transferAmount = theChosenOnes[msg.sender]; 
-            theChosenOnes[msg.sender] = 0;
-            msg.sender.transfer(transferAmount);
-            LogWithdrawl(msg.sender, transferAmount);
-            LogContractState(this.balance, theChosenOnes[Bob], theChosenOnes[Carol]); 
-    } 
-    
-    function getContractBalance() public constant returns(uint) {
-            return this.balance;
-    }
+        uint amount = theChosenOnes[msg.sender]; 
+        theChosenOnes[msg.sender] = 0;
+        msg.sender.transfer(amount);
+        LogWithdrawal(msg.sender, amount);
+        return true; 
 
-    function getBalanceA() public constant returns(uint) {
-        return owner.balance;
-    }
-    
-    function getBalanceB() public constant returns(uint) {
-        return Bob.balance;    
-    }
-    
-    function getBalanceC() public constant returns(uint) {
-        return Carol.balance;    
-    }
+        
+    } 
 
     function freeze(bool _freeze)
         isOwner
         returns (bool success) {
             frozen = _freeze;
-            LogFreeze("Splitter contract frozen?", frozen);
+            LogFreeze(frozen);
             return true;
     }
 }
