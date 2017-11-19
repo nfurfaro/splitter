@@ -37,7 +37,7 @@ contract Splitter is Freezable {
         require(theChosenOnes[msg.sender] != 0);
         uint amount = theChosenOnes[msg.sender]; 
         theChosenOnes[msg.sender] = 0;
-        // msg.sender.transfer(amount);
+        msg.sender.transfer(amount);
         LogWithdrawal(msg.sender, amount);
         return true; 
 

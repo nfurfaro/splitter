@@ -23,14 +23,14 @@ contract('Splitter', accounts => {
 		});
 	});
 
-	// it("should add a new deposit to the contract balance", () => {
-	// 	 return instance.deposit({from: owner, value: 10}).then(txObj => {
-	// 	  	assert.strictEqual(txObj.logs[0].event, "LogDeposit", "a deposit was not logged");
-	// 	    return web3.eth.getBalance(instance.address)
-	//     }).then((_balance) => {
-	// 	      assert.strictEqual(_balance.toString(10), "10", "Splitter balance was not increased by 10 wei")
-	// 	});
-	// });
+	it("should add a new deposit to the contract balance", () => {
+		 return instance.deposit({from: owner, value: 10}).then(txObj => {
+		  	assert.strictEqual(txObj.logs[0].event, "LogDeposit", "a deposit was not logged");
+		    return web3.eth.getBalancePromise(instance.address)
+	    }).then((_balance) => {
+		      assert.strictEqual(_balance.toString(10), "10", "Splitter balance was not increased by 10 wei")
+		});
+	});
 
 	it("should keep track of the total value of all deposits", () => {
 		return instance.deposit({from: owner, value: 2}).then (() => {
@@ -38,7 +38,7 @@ contract('Splitter', accounts => {
 		}).then(txObj => {
 		    return instance.deposit({from: owner, value: 14})
 		}).then (() => {
-		    return web3.eth.getBalance(instance.address)
+		    return web3.eth.getBalancePromise(instance.address)
 		}).then(_balance => {
 		    assert.strictEqual(_balance.toString(10), "30", "Splitter balance was not properly credited")
 		})
@@ -46,10 +46,10 @@ contract('Splitter', accounts => {
 
 	it("should allow Bob to withdraw 25 wei", () => {
 		  return instance.deposit({from: owner, value: 50}).then(() => {
-		      return web3.eth.getBalance(instance.address)
-		  }).then(_balance => {
+		      return web3.eth.getBalancePromise(instance.address)
+	    }).then(_balance => {
 	      return instance.withdrawFunds({from: Bob})
-	  }).then(txObj => {
+	    }).then(txObj => {
 	  	  assert.strictEqual(txObj.logs[0].event, "LogWithdrawal", "a deposit was not logged");
 	      assert.strictEqual(txObj.logs[0].args.amount.toString(10), "25", "Bob's share wasn't properly allocated");
 	  });
@@ -57,7 +57,7 @@ contract('Splitter', accounts => {
 
 	it("should allow Carol to withdraw 11 wei", () => {
 		  return instance.deposit({from: owner, value: 21}).then(() => {
-		      return web3.eth.getBalance(instance.address)
+		      return web3.eth.getBalancePromise(instance.address)
 		  }).then(() => {
 	      return instance.withdrawFunds({from: Carol})
 	  }).then(txObj => {
@@ -89,9 +89,10 @@ contract('Splitter', accounts => {
 	    let gasUsed;
 	    let txFee;
 	    let endBalance;
-		web3.eth.getBalancePromise(Carol).then(_balance => {
+        let testAmount = 8000000000000000;
+		return web3.eth.getBalancePromise(Carol).then(_balance => {
             startBalance = _balance;
-            return instance.deposit({from: owner, value: 8000000000000000})
+            return instance.deposit({from: owner, value: testAmount})
 		}).then(() => {  
 	        return instance.withdrawFunds({from: Carol})
 	    }).then(txObj => {
@@ -104,33 +105,36 @@ contract('Splitter', accounts => {
             return web3.eth.getBalancePromise(Carol
         )}).then(_balance => {
             endBalance = _balance;
-            assert.equal(startBalance.plus(payout).minus(txFee).toString(10), endBalance.toString(10), "Carol didn't get her ether")
-            if(error) console.log("error: " + error);  
+            assert.equal(startBalance.plus(payout).minus(txFee).toString(10), endBalance.toString(10), "Carol didn't get her ether")  
 		})
     });
-})
 
-  //   it("should confirm that the Owner can withdraw all the funds", () => {
-		// let startBalance;
-		// let payout;
-		// let gasPrice;
-	 //    let gasUsed;
-	 //    let txFee;
-	 //    let endBalance;
-		// startBalance = web3.eth.getBalance(owner);
-	 //    return instance.deposit({from: owner, value: 1000000000000000000}).then(() => {  
-	 //        return instance.withdrawFunds({from: owner})
-	 //    }).then(txObj => {
-  //           payout = txObj.logs[0].args.amount
-  //           gasUsed = txObj.receipt.gasUsed;
-  //           web3.eth.getTransaction(txObj.tx, (err, tx) => {
-  //               gasPrice = tx.gasPrice;
-  //               txFee = gasPrice.times(gasUsed);
-  //               endBalance = web3.eth.getBalance(
-  //               owner);
-  //               assert.strictEqual(startBalance.plus(payout).minus(txFee).toString(10), endBalance.toString(10), "owner didn't get their ether");
-  //           });               
-        
-	 //    });
-  //   });
+
+    it("should confirm that the Owner can withdraw all the funds", () => {
+		let startBalance;
+		let payout;
+		let gasPrice;
+	    let gasUsed;
+	    let txFee;
+	    let endBalance;
+        let testAmount = 1000000000000000000;
+		return web3.eth.getBalancePromise(owner).then(_balance => {
+            startBalance = _balance;
+            instance.deposit({from: owner, value: testAmount})
+        }).then(() => {  
+	        return instance.withdrawFunds({from: owner})
+	    }).then(txObj => {
+            payout = txObj.logs[0].args.amount
+            gasUsed = txObj.receipt.gasUsed;
+            return web3.eth.getTransactionPromise(txObj.tx)
+        }).then(tx => {
+            gasPrice = tx.gasPrice;
+            txFee = gasPrice.times(gasUsed);
+            return web3.eth.getBalancePromise(owner)
+        }).then(_balance => {
+            endBalance = _balance;
+            assert.equal(startBalance.plus(payout).minus(txFee).toString(10), endBalance.toString(10), "owner didn't get their ether");
+        }) 
+    });
+});
 
