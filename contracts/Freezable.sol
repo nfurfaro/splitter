@@ -14,11 +14,13 @@ contract Freezable is Owned {
     }
 
     function freeze(bool _freeze)
+        public
         onlyOwner
-        returns (bool success) {
-            require(_freeze != frozen);
-            frozen = _freeze;
-            LogFreeze(msg.sender, _freeze);
-            return true;
+        returns (bool success) 
+    {
+        require(_freeze != frozen);
+        frozen = _freeze;
+        LogFreeze(msg.sender, _freeze);
+        return true;
     }
 }

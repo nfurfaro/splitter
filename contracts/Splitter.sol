@@ -30,7 +30,6 @@ contract Splitter is Freezable {
 
     function withdrawFunds()
         freezeRay 
-        ifOwner
         public
         returns (bool success) 
     {
