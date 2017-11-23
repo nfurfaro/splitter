@@ -29,7 +29,7 @@ contract Splitter is Freezable {
     }
 
     function withdrawFunds()
-        freezeRay 
+        freezeRay
         public
         returns (bool success) 
     {

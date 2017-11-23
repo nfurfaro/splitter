@@ -49,28 +49,23 @@ contract('Splitter', accounts => {
         let carolsFundsBefore;
         let carolsFundsAfter;
         return Promise.all([
-            instance.theChosenOnes.call(0, {from: Bob}),
-            instance.theChosenOnes.call(0, {from: Carol}),
+            instance.theChosenOnes(Bob, {from: owner}),
+            instance.theChosenOnes(Carol, {from: owner}),
         ])
             .then(values => {
-                console.log("values: " + values);
                 bobsFundsBefore = values[0];
                 carolsFundsBefore = values[1];
-                console.log("bob before: " + bobsFundsBefore.toString(10));
                 return instance.deposit({from: owner, value: deposit})
             })
             .then(txObj => {
-                console.log(txObj.logs[0].args);
                 return Promise.all([
-                    instance.theChosenOnes.call(0, {from: Bob}),
-                    instance.theChosenOnes.call(0, {from: Carol})
+                    instance.theChosenOnes(Bob, {from: owner}),
+                    instance.theChosenOnes(Carol, {from: owner})
                 ])
             })
             .then(funds => {
-                console.log("funds: " + funds);
                 bobsFundsAfter = funds[0];
                 carolsFundsAfter = funds[1];
-                console.log(bobsFundsAfter.toString(10));
                 let deltaBob = bobsFundsAfter.minus(bobsFundsBefore).toString(10);
                 let deltaCarol = carolsFundsAfter.minus(carolsFundsBefore).toString(10);
                 let halfDeposit = (deposit / 2).toString(10);
@@ -79,32 +74,23 @@ contract('Splitter', accounts => {
             })
     })
 
-
-
-// *
-    // it("should properly manage the state of 'theChosenOnes'", async() => {
-    //     let deposit = 10;
-    //     let bobsFundsBefore;
-    //     let bobsFundsAfter;
-    //     let carolsFundsBefore;
-    //     let carolsFundsAfter;
-    //     bobsFundsBefore = await instance.theChosenOnes.call(0, {from: Bob})
-    //     console.log(bobsFundsBefore);
-    //     carolsFundsBefore = await instance.theChosenOnes.call(0, {from: Carol})
-    //     await instance.deposit({from: owner, value: 10}); 
-    //     console.log(await instance.deposit({from: owner, value: deposit})); 
-    //     bobsFundsAfter = await instance.theChosenOnes.call(0, {from: Bob})
-    //     carolsFundsAfter = await instance.theChosenOnes.call(0, {from: Carol});
-    //     console.log(bobsFundsAfter);
-    //     setTimeout(function(){
-    //         console.log(bobsFundsAfter);
-    //     });
-    //     let deltaBob = bobsFundsAfter.minus(bobsFundsBefore).toString(10);
-    //     let deltaCarol = carolsFundsAfter.minus(carolsFundsBefore).toString(10);
-    //     let halfDeposit = (deposit / 2).toString(10);
-    //     assert.strictEqual(deltaBob, halfDeposit, "Bob wasn't properly credited");
-    //     assert.strictEqual(deltaCarol, halfDeposit, "Carol wasn't properly credited");
-    // })
+    it("should properly manage the state of 'theChosenOnes'", async() => {
+        let deposit = 10;
+        let bobsFundsBefore;
+        let bobsFundsAfter;
+        let carolsFundsBefore;
+        let carolsFundsAfter;
+        bobsFundsBefore = await instance.theChosenOnes(0, {from: Bob})
+        carolsFundsBefore = await instance.theChosenOnes(0, {from: Carol})
+        await instance.deposit({from: owner, value: 10});  
+        bobsFundsAfter = await instance.theChosenOnes(Bob, {from: owner})
+        carolsFundsAfter = await instance.theChosenOnes(Carol, {from: owner});
+        let deltaBob = bobsFundsAfter.minus(bobsFundsBefore).toString(10);
+        let deltaCarol = carolsFundsAfter.minus(carolsFundsBefore).toString(10);
+        let halfDeposit = (deposit / 2).toString(10);
+        assert.strictEqual(deltaBob, halfDeposit, "Bob wasn't properly credited");
+        assert.strictEqual(deltaCarol, halfDeposit, "Carol wasn't properly credited");
+    })
 
     it("should keep track of the total value of all deposits", () => {
         Promise.all([
@@ -167,66 +153,5 @@ contract('Splitter', accounts => {
         assert.strictEqual(_funds.toString(10), "0", "players funds should have been set to 0");
         assert.strictEqual(startBalance.plus(payout).minus(txFee).toString(10), endBalance.toString(10), "Carol didn't get her ether")  
     })
-
-
-	// it("should confirm that carol can withdraw her funds", () => {
-	// 	let startBalance;
-	// 	let payout;
-	// 	let gasPrice;
-	//     let gasUsed;
-	//     let txFee;
-	//     let endBalance;
- //        let testAmount = 8000000000000000;
-	// 	return web3.eth.getBalancePromise(Carol)
- //        .then(_balance => {
- //            startBalance = _balance;
- //            return instance.deposit({from: owner, value: testAmount})
-	// 	}).then(() => {  
-	//         return instance.withdrawFunds({from: Carol})
-	//     }).then(txObj => {
- //            payout = txObj.logs[0].args.amount
- //            gasUsed = txObj.receipt.gasUsed;
- //            return web3.eth.getTransactionPromise(txObj.tx)
- //        }).then(tx => {
- //            gasPrice = tx.gasPrice;
- //            txFee = gasPrice.times(gasUsed);
- //            return web3.eth.getBalancePromise(Carol
- //        )}).then(_balance => {
- //            endBalance = _balance;
- //            return instance.theChosenOnes.call(0, {from: Carol})
- //        }).then(_funds => {
- //            assert.strictEqual(_funds.toString(10), "0", "players funds should have been set to 0");
- //            assert.strictEqual(startBalance.plus(payout).minus(txFee).toString(10), endBalance.toString(10), "Carol didn't get her ether")  
- //        })
- //    });
-
-// failing, as I have no function for owner to withdraqw ATM.
-  //   it("should confirm that the Owner can withdraw all the funds", () => {
-		// let startBalance;
-		// let payout;
-		// let gasPrice;
-	 //    let gasUsed;
-	 //    let txFee;
-	 //    let endBalance;
-  //       let testAmount = 1000000000000000000;
-		// return web3.eth.getBalancePromise(owner)
-  //       .then(_balance => {
-  //           startBalance = _balance;
-  //           instance.deposit({from: owner, value: testAmount})
-  //       }).then(() => {  
-	 //        return instance.withdrawFunds({from: owner})
-	 //    }).then(txObj => {
-  //           payout = txObj.logs[0].args.amount
-  //           gasUsed = txObj.receipt.gasUsed;
-  //           return web3.eth.getTransactionPromise(txObj.tx)
-  //       }).then(tx => {
-  //           gasPrice = tx.gasPrice;
-  //           txFee = gasPrice.times(gasUsed);
-  //           return web3.eth.getBalancePromise(owner)
-  //       }).then(_balance => {
-  //           endBalance = _balance;
-  //           assert.equal(startBalance.plus(payout).minus(txFee).toString(10), endBalance.toString(10), "owner didn't get their ether");
-  //       }) 
-  //   });
 });
 
